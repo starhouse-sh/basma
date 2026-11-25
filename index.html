@@ -3,43 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>نظام البصمة - ستار هاوس</title>
+<title>نظام البصمة</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563eb">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 *{box-sizing:border-box;font-family:system-ui,Tahoma}
 body{margin:0;background:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
 .card{background:white;width:100%;max-width:420px;border-radius:24px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.1);text-align:center}
 h1{margin:0 0 8px;color:#1e293b;font-size:22px}
-p.muted{color:#64748b;margin:0 0 20px;font-size:14px}
-.btn{width:100%;padding:16px;border:0;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer;margin:8px 0;transition:.2s}
+.muted{color:#64748b;font-size:14px;margin:0 0 12px}
+.btn{width:100%;padding:16px;border:0;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer;margin:8px 0}
 .btn-in{background:#2563eb;color:white}
 .btn-out{background:#0f172a;color:white}
-.btn:active{transform:scale(.97)}
+.install-btn{
+  width:100%;background:#fde68a;color:#92400e;border:2px dashed #f59e0b;
+  padding:14px;border-radius:50px;font-size:18px;font-weight:800;cursor:pointer;margin:14px 0;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.install-btn.hidden{display:none}
 .badge{display:inline-block;padding:6px 12px;border-radius:99px;background:#dcfce7;color:#166534;font-size:12px;margin:10px 0}
 .log{margin-top:20px;text-align:right;background:#f8fafc;border-radius:12px;padding:12px;max-height:200px;overflow:auto;font-size:13px}
 .log-item{padding:8px 0;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between}
-.install{margin-top:16px;background:#fef3c7;color:#92400e;border:1px dashed #f59e0b;padding:12px;border-radius:12px;font-size:13px;display:none}
+#time{font-size:28px;font-weight:800;color:#2563eb;margin:10px 0}
 </style>
 </head>
 <body>
 <div class="card">
 <h1>🕐 نظام البصمة</h1>
 <p class="muted">ستار هاوس - يعمل بدون انترنت</p>
-<div id="time" style="font-size:28px;font-weight:800;color:#2563eb;margin:10px 0">--:--:--</div>
+<div id="time">--:--:--</div>
 <div id="date" class="muted"></div>
 <div class="badge" id="status">جاهز للتسجيل</div>
 
+<button id="installBtn" class="install-btn" onclick="installApp()">📲 ثبّت التطبيق</button>
+
 <button class="btn btn-in" onclick="checkIn()">📥 تسجيل دخول</button>
 <button class="btn btn-out" onclick="checkOut()">📤 تسجيل خروج</button>
-
-<div id="installBox" class="install">
-📲 عايز تثبته كتطبيق؟ دوس <b>تثبيت</b> اللي هتظهر فوق في المتصفح<br>
-أو من الموبايل: 3 نقط ⋮ -> تثبيت التطبيق
-</div>
 
 <div class="log" id="log"></div>
 </div>
@@ -59,10 +59,9 @@ function loadLog(){
   box.innerHTML=data.map(r=>`<div class="log-item"><span>${r.type}</span><span>${r.time}</span></div>`).join('');
 }
 loadLog();
-
 function save(type){
   const now=new Date();
-  const entry={type:type,time:now.toLocaleString('ar-EG'),ts:now.getTime()};
+  const entry={type:type,time:now.toLocaleString('ar-EG')};
   const data=JSON.parse(localStorage.getItem('basma_log')||'[]');
   data.unshift(entry);
   localStorage.setItem('basma_log',JSON.stringify(data));
@@ -73,18 +72,39 @@ function save(type){
 function checkIn(){save('دخول')}
 function checkOut(){save('خروج')}
 
-// PWA Install prompt
-let deferredPrompt;
+let deferredPrompt=null;
+const installBtn=document.getElementById('installBtn');
+
+// يظهر الزرار دايما، ولو المتصفح يدعم التثبيت هنستخدمه
 window.addEventListener('beforeinstallprompt', (e)=>{
   e.preventDefault();
   deferredPrompt=e;
-  document.getElementById('installBox').style.display='block';
-});
-window.addEventListener('appinstalled', ()=>{
-  document.getElementById('installBox').style.display='none';
+  installBtn.classList.remove('hidden');
 });
 
-// Service Worker
+function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice=>{
+      if(choice.outcome==='accepted'){
+        installBtn.textContent='✅ تم التثبيت';
+      }
+      deferredPrompt=null;
+    });
+  }else{
+    // للموبايلات اللي مش بتدعم beforeinstallprompt - نوريه الطريقة اليدوي
+    alert('لتثبيت التطبيق:\n\n1- دوس الـ 3 نقط ⋮ فوق في Chrome\n2- اختار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"\n\nهيظهر بأيقونة على موبايلك ويشتغل بدون نت!');
+  }
+}
+
+// لو التطبيق متثبت already اخفي الزرار
+window.addEventListener('appinstalled', ()=>{
+  installBtn.classList.add('hidden');
+});
+if(window.matchMedia('(display-mode: standalone)').matches){
+  installBtn.classList.add('hidden');
+}
+
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js');
 }

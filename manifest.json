@@ -1,7 +1,6 @@
 {
   "name": "نظام البصمة - ستار هاوس",
   "short_name": "البصمة",
-  "description": "نظام تسجيل الحضور والانصراف يعمل بدون انترنت",
   "start_url": "/basma/",
   "scope": "/basma/",
   "display": "standalone",
