@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بصمة</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#22c55e">
+<style>
+  body{font-family:system-ui;background:#f5f5f7;color:#111;margin:0;padding:15px}
+  button{width:100%;padding:20px;margin:10px 0;border:0;border-radius:16px;font-size:20px;font-weight:bold;cursor:pointer}
+  .btn-active{background:#22c55e;color:#fff;box-shadow:0 4px 12px rgba(34,197,94,0.3)}
+  .btn-done{background:#e5e7eb;color:#6b7280;cursor:not-allowed}
+  .btn-wait{background:#f3f4f6;color:#9ca3af;cursor:not-allowed;border:2px dashed #d1d5db}
+  .btn-closed{background:#fee2e2;color:#991b1b;cursor:not-allowed}
+  .nav{display:flex;gap:5px;position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px;border-top:1px solid #ddd}
+  .nav button{background:#eee;color:#111;font-size:13px;padding:10px}
+  .nav button.active{background:#111;color:#fff}
+  .card{background:#fff;padding:15px;border-radius:14px;margin:10px 0;border:1px solid #e5e5e5}
+  input,select{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #ccc;background:#fff;color:#111}
+  table{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+  td,th{border:1px solid #ddd;padding:7px;text-align:center}
+  th{background:#f0f0f0}
+  .hidden{display:none !important}
+  .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:15px}
+  .modal.hidden{display:none !important}
+  .modal-box{background:#fff;padding:20px;border-radius:16px;width:100%;max-width:360px;text-align:center}
+  .row{display:flex;gap:8px}
+  .row button{flex:1;padding:12px;font-size:14px}
+  .day-opt{background:#eee;color:#111}
+  .day-opt.selected{background:#111;color:#fff}
+</style></head>
+<body>
+<h2>🕐 بصمة - بدون نت</h2><p id="today" style="color:#555"></p><p id="clock" style="font-size:18px;font-weight:bold;text-align:center"></p>
+<p style="font-size:12px;color:#22c55e;text-align:center">✅ يعمل بدون انترنت - البيانات محفوظة على جهازك</p>
+<div id="page-day">
+  <div class="card"><p id="dayStatus"></p></div>
+  <button id="btnIn" class="btn-active" onclick="confirmFp('حضور')">👆 توقيع حضور</button>
+  <button id="btnOut" class="btn-wait" onclick="confirmFp('انصراف')">🕐 انتظار موعد الانصراف</button>
+  <div class="card"><p id="todayLog">لم يتم التسجيل اليوم</p></div>
+  <div class="card" style="background:#fffbeb;border:1px dashed #f59e0b">
+    <p style="margin:0;font-size:14px"><span id="notifBtnText">🔔 التنبيه شغال</span> - الساعة 8:25</p>
+    <p style="font-size:12px;color:#666;margin:5px 0">هيجيلك إشعار 8:25 لو نسيت الحضور، و 3:00 لو نسيت الانصراف</p>
+    <button onclick="toggleNotif()" style="background:#f59e0b;color:#fff;font-size:14px;padding:10px">تشغيل / إيقاف التنبيه</button>
+    <button onclick="testNotif()" style="background:#eee;color:#111;font-size:13px;padding:8px">جرب التنبيه الآن</button>
+  </div>
+  <script>function testNotif(){ askNotifPermission(); setTimeout(()=>showNotif('⏰ بصمة الحضور - تجربة', 'ده شكل التنبيه اللي هيجيلك 8:25 لو نسيت'), 1000); }</script>
+
+  <button onclick="exportBackup()" style="background:#111;color:#fff;font-size:14px;padding:12px">💾 نسخ احتياطي - انسخ البيانات</button>
+  <button onclick="importBackup()" style="background:#fff;color:#111;border:1px solid #ccc;font-size:14px;padding:12px">📥 استرجاع نسخة احتياطية</button>
+</div>
+<div id="page-table" class="hidden"><div class="card"><b>جدول البصمات</b></div><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>حضور</th><th>انصراف</th><th>الحالة</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+<div id="page-balance" class="hidden"><div class="card"><b>السنة المالية: <span id="fiscal"></span></b><p>اعتيادي: إجمالي <span id="regTotal"></span> - استهلكت <span id="regUsed"></span> - باقي <span id="regLeft"></span></p><p>عارضة: إجمالي 7 - استهلكت <span id="casUsed"></span> - باقي <span id="casLeft"></span></p><button style="background:#111;color:#fff" onclick="openLeaveModal('اعتيادي')">+ إضافة إجازة اعتيادي</button><button style="background:#f59e0b;color:#fff" onclick="openLeaveModal('عارضة')">+ إضافة إجازة عارضة</button><div id="leavesList" style="margin-top:10px;font-size:13px"></div></div><div class="card"><b>الدرجة</b><p>الحالية: <span id="gradeNow"></span></p><p>الجاية: <span id="gradeNext"></span></p><p>تاريخ الترقية: <span id="gradeDateDisplay"></span></p><p>باقي: <span id="gradeLeft"></span></p></div></div>
+<div id="page-vac" class="hidden"><div class="card"><b>العطلات</b><p>الجمعة: عطلة رسمية</p><p id="restDisplay"></p></div></div>
+<div id="page-settings" class="hidden"><div class="card"><b>الإعدادات</b><label>تاريخ التعيين</label><input type="date" id="hiring"><label>الدرجة</label><select id="grade"><option>السادسة</option><option>الخامسة</option><option>الرابعة</option><option>الثالثة (ج)</option><option>الثالثة (ب)</option><option>الثالثة (أ)</option><option>الثانية (ب)</option><option>الثانية (أ)</option><option>الأولى (ب)</option><option>الأولى (أ)</option><option>مدير عام</option><option>العالية</option><option>الممتازة</option></select><label>تاريخ الحصول على الدرجة</label><input type="date" id="gradeDate"><label>الراحة الأسبوعية</label><select id="restDay"><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option selected>الخميس</option></select><button style="background:#111;color:#fff" onclick="saveSet()">حفظ الإعدادات</button></div></div>
+<div id="leaveModal" class="modal hidden"><div class="modal-box" style="text-align:right"><h3 id="modalTitle">إضافة إجازة</h3><div class="row"><button class="day-opt selected" onclick="pickDays(1)">يوم 1</button><button class="day-opt" onclick="pickDays(2)">يومان</button><button class="day-opt" onclick="pickDays(3)">3 أيام</button></div><div class="row"><button class="day-opt" onclick="pickDays(4)">4 أيام</button><button class="day-opt" onclick="pickDays(5)">5 أيام</button><button class="day-opt" onclick="pickDays(6)">6 أيام</button></div><label>من تاريخ:</label><input type="date" id="fromDate" onchange="calcToDate()"><label>إلى تاريخ:</label><input type="date" id="toDate" readonly style="background:#eee"><p id="dateInfo" style="font-size:12px;color:#666"></p><div class="row"><button onclick="closeModal('leaveModal')" style="background:#eee;color:#111">إلغاء</button><button style="background:#22c55e;color:#fff" onclick="confirmLeave()">حفظ</button></div></div></div>
+<div id="confirmModal" class="modal hidden"><div class="modal-box"><h2 id="confirmTitle">تأكيد</h2><p id="confirmMsg" style="font-size:18px"></p><p style="font-size:13px;color:#666">الساعة: <span id="confirmTime"></span></p><div class="row"><button onclick="closeModal('confirmModal')" style="background:#eee;color:#111">إلغاء</button><button id="confirmBtn" style="background:#22c55e;color:#fff" onclick="doFp()">تأكيد ✅</button></div></div></div>
+<div style="height:80px"></div>
+<div class="nav"><button class="active" onclick="show('day',this)">اليوم</button><button onclick="show('table',this)">الجدول</button><button onclick="show('balance',this)">رصيدي</button><button onclick="show('vac',this)">الإجازات</button><button onclick="show('settings',this)">الإعدادات</button></div>
+<script>
+let settings = JSON.parse(localStorage.getItem('settings')||'{"hiring":"2015-03-10","grade":"الثالثة (ج)","gradeDate":"2023-07-01","restDay":"الخميس"}');
+let logs = JSON.parse(localStorage.getItem('logs')||'{}');
+let leavesData = JSON.parse(localStorage.getItem('leavesData')||'[]');
+let leaves = JSON.parse(localStorage.getItem('leaves')||'{"regular":0,"casual":0}');
+let currentLeaveType='اعتيادي', currentDays=1, pendingFpType='';
+const grades=['السادسة','الخامسة','الرابعة','الثالثة (ج)','الثالثة (ب)','الثالثة (أ)','الثانية (ب)','الثانية (أ)','الأولى (ب)','الأولى (أ)','مدير عام','العالية','الممتازة'];
+const durations=[5,5,5,3,3,3,3,3,1,1,1,1];
+function getFiscal(){let d=new Date(),y=d.getFullYear(),m=d.getMonth()+1;if(m>=7)return y+' - '+(y+1);return (y-1)+' - '+y;}
+function getBalance(){let yrs=(new Date()-new Date(settings.hiring))/(1000*60*60*24*365);let r=21;if(yrs>10)r=30;if(yrs<1)r=15;return r;}
+function getDayType(date){let n=date.toLocaleDateString('ar-EG',{weekday:'long'});let key=date.toISOString().split('T')[0];for(let lv of leavesData){if(lv.dates.includes(key))return lv.type==='اعتيادي'?'إجازة اعتيادي':'إجازة عارضة';}if(n.includes('الجمعة'))return 'عطلة رسمية - الجمعة';if(n.includes(settings.restDay))return 'راحة أسبوعية';return 'يوم عمل';}
+function updateButtons(){
+  let now=new Date();let minutes=now.getHours()*60+now.getMinutes();let todayKey=now.toLocaleDateString('ar-EG');let hasIn=!!logs[todayKey+'-حضور'];let hasOut=!!logs[todayKey+'-انصراف'];let dayType=getDayType(now);
+  let btnIn=document.getElementById('btnIn');let btnOut=document.getElementById('btnOut');
+  if(dayType!=='يوم عمل'){btnIn.className='btn-done';btnIn.innerText='اليوم '+dayType;btnIn.disabled=true;}
+  else if(hasIn){btnIn.className='btn-done';btnIn.innerText='تم التوقيع بالحضور ✅ '+(logs[todayKey+'-حضور']||'');btnIn.disabled=true;}
+  else if(minutes<360){btnIn.className='btn-wait';btnIn.innerText='انتظار موعد الحضور';btnIn.disabled=true;}
+  else if(minutes>515){btnIn.className='btn-closed';btnIn.innerText='انتهى وقت الحضور ⛔ (بعد 8:35)';btnIn.disabled=true;}
+  else{btnIn.className='btn-active';btnIn.innerText='👆 توقيع حضور';btnIn.disabled=false;}
+  if(dayType!=='يوم عمل'){btnOut.className='btn-done';btnOut.innerText='اليوم '+dayType;btnOut.disabled=true;}
+  else if(hasOut){btnOut.className='btn-done';btnOut.innerText='تم توقيع الانصراف ✅ '+(logs[todayKey+'-انصراف']||'');btnOut.disabled=true;}
+  else if(minutes<840){btnOut.className='btn-wait';btnOut.innerText='🕐 انتظار موعد الانصراف (من 2:00 م)';btnOut.disabled=true;}
+  else{btnOut.className='btn-active';btnOut.innerText='👋 توقيع انصراف';btnOut.disabled=false;}
+  document.getElementById('todayLog').innerHTML='حضور: '+(logs[todayKey+'-حضور']||'لم يوقع')+'<br>انصراف: '+(logs[todayKey+'-انصراف']||'لم يوقع');
+}
+function confirmFp(type){let now=new Date();let minutes=now.getHours()*60+now.getMinutes();let todayKey=now.toLocaleDateString('ar-EG');if(type==='حضور'&&(minutes>515||!!logs[todayKey+'-حضور']))return;if(type==='انصراف'&&(minutes<840||!!logs[todayKey+'-انصراف']))return;pendingFpType=type;document.getElementById('confirmMsg').innerText='هل أنت متأكد من توقيع '+type+'؟';document.getElementById('confirmTime').innerText=now.toLocaleTimeString('ar-EG');document.getElementById('confirmModal').classList.remove('hidden');}
+function doFp(){closeModal('confirmModal');let key=new Date().toLocaleDateString('ar-EG')+'-'+pendingFpType;logs[key]=new Date().toLocaleTimeString('ar-EG');localStorage.setItem('logs',JSON.stringify(logs));alert('تم توقيع '+pendingFpType+' ✅');renderAll();}
+function openLeaveModal(type){currentLeaveType=type;document.getElementById('modalTitle').innerText='إضافة إجازة '+type;document.getElementById('fromDate').valueAsDate=new Date();currentDays=1;calcToDate();document.getElementById('leaveModal').classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+function pickDays(d){currentDays=d;document.querySelectorAll('.day-opt').forEach(b=>b.classList.remove('selected'));event.target.classList.add('selected');calcToDate();}
+function calcToDate(){let from=document.getElementById('fromDate').value;if(!from)return;let fd=new Date(from);let to=new Date(fd);to.setDate(fd.getDate()+currentDays-1);document.getElementById('toDate').valueAsDate=to;document.getElementById('dateInfo').innerText='من '+fd.toLocaleDateString('ar-EG')+' إلى '+to.toLocaleDateString('ar-EG');}
+function confirmLeave(){let from=document.getElementById('fromDate').value;let to=document.getElementById('toDate').value;let dates=[];let cur=new Date(from);let end=new Date(to);while(cur<=end){dates.push(cur.toISOString().split('T')[0]);cur.setDate(cur.getDate()+1);}leavesData.push({type:currentLeaveType,days:currentDays,from,to,dates});if(currentLeaveType==='اعتيادي')leaves.regular+=currentDays;else leaves.casual+=currentDays;localStorage.setItem('leavesData',JSON.stringify(leavesData));localStorage.setItem('leaves',JSON.stringify(leaves));closeModal('leaveModal');renderBalance();renderTable();alert('تم حفظ الإجازة');}
+function saveSet(){settings={hiring:document.getElementById('hiring').value,grade:document.getElementById('grade').value,gradeDate:document.getElementById('gradeDate').value,restDay:document.getElementById('restDay').value};localStorage.setItem('settings',JSON.stringify(settings));alert('تم الحفظ');renderAll();}
+function show(p,btn){['day','table','balance','vac','settings'].forEach(x=>document.getElementById('page-'+x).classList.add('hidden'));document.getElementById('page-'+p).classList.remove('hidden');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function renderBalance(){document.getElementById('fiscal').innerText=getFiscal();let reg=getBalance();document.getElementById('regTotal').innerText=reg;document.getElementById('regUsed').innerText=leaves.regular;document.getElementById('regLeft').innerText=reg-leaves.regular;document.getElementById('casUsed').innerText=leaves.casual;document.getElementById('casLeft').innerText=7-leaves.casual;document.getElementById('leavesList').innerHTML=leavesData.map(l=>'• '+l.type+' : '+l.from+' → '+l.to+' ('+l.days+' يوم)').join('<br>');let idx=grades.indexOf(settings.grade);let currentIdx=idx;let gradeDate=new Date(settings.gradeDate);let now=new Date();let nextDate=new Date(gradeDate);while(true){let need=durations[currentIdx]||0;if(need===0)break;nextDate=new Date(gradeDate);nextDate.setFullYear(gradeDate.getFullYear()+need);if(nextDate>now)break;gradeDate=new Date(nextDate);currentIdx++;if(currentIdx>=grades.length-1)break;}document.getElementById('gradeNow').innerText=grades[currentIdx]||settings.grade;document.getElementById('gradeNext').innerText=grades[currentIdx+1]||'أعلى درجة';document.getElementById('gradeDateDisplay').innerText=nextDate.toLocaleDateString('ar-EG');let diff=nextDate-now;if(diff<=0)document.getElementById('gradeLeft').innerText='مستحقة الآن 🎉';else{let y=Math.floor(diff/(1000*60*60*24*365));let mo=Math.floor((diff%(1000*60*60*24*365))/(1000*60*60*24*30));let d=Math.floor((diff%(1000*60*60*24*30))/(1000*60*60*24));document.getElementById('gradeLeft').innerText=y+' سنة و '+mo+' شهر و '+d+' يوم';}}
+function renderTable(){let tb=document.getElementById('tableBody');tb.innerHTML='';for(let d=1;d<=31;d++){let date=new Date(new Date().getFullYear(),new Date().getMonth(),d);if(date.getMonth()!==new Date().getMonth())continue;let dn=date.toLocaleDateString('ar-EG',{weekday:'long'});let key=date.toLocaleDateString('ar-EG');let type=getDayType(date);tb.innerHTML+='<tr><td>'+d+'</td><td>'+dn+'</td><td>'+(logs[key+'-حضور']||'-')+'</td><td>'+(logs[key+'-انصراف']||'-')+'</td><td>'+type+'</td></tr>';}}
+function exportBackup(){let data=JSON.stringify({settings,logs,leaves,leavesData});let ta=document.createElement('textarea');ta.value=data;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');alert('تم نسخ البيانات ✅ الصقها في أي مكان واحفظها');}catch(e){prompt('انسخ البيانات دي واحفظها:',data);}ta.remove();}
+function importBackup(){let data=prompt('الصق النسخة الاحتياطية هنا:');if(!data)return;try{let o=JSON.parse(data);settings=o.settings||settings;logs=o.logs||logs;leaves=o.leaves||leaves;leavesData=o.leavesData||leavesData;localStorage.setItem('settings',JSON.stringify(settings));localStorage.setItem('logs',JSON.stringify(logs));localStorage.setItem('leaves',JSON.stringify(leaves));localStorage.setItem('leavesData',JSON.stringify(leavesData));alert('تم الاسترجاع ✅');renderAll();}catch(e){alert('النسخة مش سليمة');}}
+function renderAll(){document.getElementById('today').innerText=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});document.getElementById('dayStatus').innerText=getDayType(new Date());document.getElementById('restDisplay').innerText='راحتك: '+settings.restDay;document.getElementById('hiring').value=settings.hiring;document.getElementById('grade').value=settings.grade;document.getElementById('gradeDate').value=settings.gradeDate;document.getElementById('restDay').value=settings.restDay;renderBalance();renderTable();updateButtons();}
+
+// ===== تنبيه 8:25 =====
+let notifEnabled = localStorage.getItem('notifEnabled') !== 'false';
+function askNotifPermission(){
+  if('Notification' in window){
+    if(Notification.permission === 'default'){ Notification.requestPermission(); }
+  }
+}
+function showNotif(title, body){
+  if('Notification' in window && Notification.permission === 'granted'){
+    navigator.serviceWorker.ready.then(reg=>{
+      reg.showNotification(title, {body: body, icon: 'icon-192.png', badge: 'icon-192.png', vibrate: [200,100,200], requireInteraction: true, tag: 'basma-attendance'});
+    }).catch(()=>{
+      new Notification(title, {body: body, icon: 'icon-192.png'});
+    });
+  } else {
+    // fallback: اهتزاز وصوت
+    if(navigator.vibrate) navigator.vibrate([300,100,300]);
+    alert(title + "\n" + body);
+  }
+}
+function checkAttendanceReminder(){
+  if(!notifEnabled) return;
+  let now = new Date();
+  let h = now.getHours(); let m = now.getMinutes();
+  let todayKey = now.toLocaleDateString('ar-EG');
+  let hasIn = !!logs[todayKey+'-حضور'];
+  let dayType = getDayType(now);
+  if(dayType !== 'يوم عمل') return;
+  // 8:25 تنبيه حضور
+  if(h===8 && m===25 && !hasIn){
+    let last = localStorage.getItem('lastNotifDate');
+    let todayStr = now.toDateString();
+    if(last !== todayStr){
+      showNotif('⏰ بصمة الحضور', 'باقي 10 دقايق وتقفل! الساعة 8:35 البصمة هتقفل، الحق ابصم دلوقتي');
+      localStorage.setItem('lastNotifDate', todayStr);
+      if(navigator.vibrate) navigator.vibrate([400,100,400,100,400]);
+    }
+  }
+  // 1:55 تنبيه قبل الانصراف
+  if(h===13 && m===55){
+    let hasOut = !!logs[todayKey+'-انصراف'];
+    let last2 = localStorage.getItem('lastNotifOutDate');
+    let todayStr = now.toDateString();
+    if(!hasOut && last2 !== todayStr){
+      showNotif('👋 بصمة الانصراف', 'الساعة 2:00 موعد الانصراف قرب، متنساش تبصم انصراف');
+      localStorage.setItem('lastNotifOutDate', todayStr);
+    }
+  }
+  // 3:00 تنبيه لو نسيت الانصراف
+  if(h===15 && m===0){
+    let hasOut3 = !!logs[todayKey+'-انصراف'];
+    let hasIn3 = !!logs[todayKey+'-حضور'];
+    let last3 = localStorage.getItem('lastNotifOut3pm');
+    let todayStr3 = now.toDateString();
+    if(hasIn3 && !hasOut3 && last3 !== todayStr3){
+      showNotif('⚠️ نسيت بصمة الانصراف!', 'الساعة بقت 3 العصر وانت لسه مبصمتش انصراف، الحق ابصم دلوقتي قبل ما اليوم يتقفل');
+      localStorage.setItem('lastNotifOut3pm', todayStr3);
+      if(navigator.vibrate) navigator.vibrate([400,100,400,100,400]);
+    }
+  }
+}
+// شغل الفحص كل دقيقة
+setInterval(checkAttendanceReminder, 60000);
+setTimeout(checkAttendanceReminder, 5000);
+// طلب الإذن أول ما يفتح
+setTimeout(askNotifPermission, 2000);
+
+function toggleNotif(){
+  notifEnabled = !notifEnabled;
+  localStorage.setItem('notifEnabled', notifEnabled);
+  document.getElementById('notifBtnText').innerText = notifEnabled ? '🔔 التنبيه شغال' : '🔕 التنبيه متوقف';
+  if(notifEnabled) askNotifPermission();
+  alert(notifEnabled ? 'تم تشغيل تنبيه 8:25 ✅' : 'تم إيقاف التنبيه');
+}
+
+renderAll();setInterval(()=>{document.getElementById('clock').innerText='الساعة الآن: '+new Date().toLocaleTimeString('ar-EG');updateButtons();},30000);
+document.getElementById('clock').innerText='الساعة الآن: '+new Date().toLocaleTimeString('ar-EG');
+</script>
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body></html>
