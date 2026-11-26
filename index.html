@@ -1,113 +1,151 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>نظام البصمة</title>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بصمة</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#22c55e">
 <style>
-*{box-sizing:border-box;font-family:system-ui,Tahoma}
-body{margin:0;background:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
-.card{background:white;width:100%;max-width:420px;border-radius:24px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.1);text-align:center}
-h1{margin:0 0 8px;color:#1e293b;font-size:22px}
-.muted{color:#64748b;font-size:14px;margin:0 0 12px}
-.btn{width:100%;padding:16px;border:0;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer;margin:8px 0}
-.btn-in{background:#2563eb;color:white}
-.btn-out{background:#0f172a;color:white}
-.install-btn{
-  width:100%;background:#fde68a;color:#92400e;border:2px dashed #f59e0b;
-  padding:14px;border-radius:50px;font-size:18px;font-weight:800;cursor:pointer;margin:14px 0;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.install-btn.hidden{display:none}
-.badge{display:inline-block;padding:6px 12px;border-radius:99px;background:#dcfce7;color:#166534;font-size:12px;margin:10px 0}
-.log{margin-top:20px;text-align:right;background:#f8fafc;border-radius:12px;padding:12px;max-height:200px;overflow:auto;font-size:13px}
-.log-item{padding:8px 0;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between}
-#time{font-size:28px;font-weight:800;color:#2563eb;margin:10px 0}
-</style>
-</head>
+  body{font-family:system-ui;background:#f5f5f7;color:#111;margin:0;padding:15px}
+  button{width:100%;padding:20px;margin:10px 0;border:0;border-radius:16px;font-size:20px;font-weight:bold;cursor:pointer}
+  .btn-active{background:#22c55e;color:#fff;box-shadow:0 4px 12px rgba(34,197,94,0.3)}
+  .btn-done{background:#e5e7eb;color:#6b7280;cursor:not-allowed}
+  .btn-wait{background:#f3f4f6;color:#9ca3af;cursor:not-allowed;border:2px dashed #d1d5db}
+  .btn-closed{background:#fee2e2;color:#991b1b;cursor:not-allowed}
+  .nav{display:flex;gap:5px;position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px;border-top:1px solid #ddd}
+  .nav button{background:#eee;color:#111;font-size:13px;padding:10px}
+  .nav button.active{background:#111;color:#fff}
+  .card{background:#fff;padding:15px;border-radius:14px;margin:10px 0;border:1px solid #e5e5e5}
+  input,select{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #ccc;background:#fff;color:#111}
+  table{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+  td,th{border:1px solid #ddd;padding:7px;text-align:center}
+  th{background:#f0f0f0}
+  .hidden{display:none !important}
+  .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:15px}
+  .modal.hidden{display:none !important}
+  .modal-box{background:#fff;padding:20px;border-radius:16px;width:100%;max-width:360px;text-align:center}
+  .row{display:flex;gap:8px}
+  .row button{flex:1;padding:12px;font-size:14px}
+  .day-opt{background:#eee;color:#111}
+  .day-opt.selected{background:#111;color:#fff}
+  #installBtn{background:#fde68a;color:#92400e;border:2px dashed #f59e0b;font-size:16px;padding:14px}
+</style></head>
 <body>
-<div class="card">
-<h1>🕐 نظام البصمة</h1>
-<p class="muted">ستار هاوس - يعمل بدون انترنت</p>
-<div id="time">--:--:--</div>
-<div id="date" class="muted"></div>
-<div class="badge" id="status">جاهز للتسجيل</div>
-
-<button id="installBtn" class="install-btn" onclick="installApp()">📲 ثبّت التطبيق</button>
-
-<button class="btn btn-in" onclick="checkIn()">📥 تسجيل دخول</button>
-<button class="btn btn-out" onclick="checkOut()">📤 تسجيل خروج</button>
-
-<div class="log" id="log"></div>
+<h2>🕐 بصمة - بدون نت</h2><p id="today" style="color:#555"></p><p id="clock" style="font-size:18px;font-weight:bold;text-align:center"></p>
+<p style="font-size:12px;color:#22c55e;text-align:center">✅ يعمل بدون انترنت - البيانات محفوظة على جهازك</p>
+<button id="installBtn" onclick="installApp()">📲 ثبّت التطبيق على الموبايل</button>
+<div id="page-day">
+  <div class="card"><p id="dayStatus"></p></div>
+  <button id="btnIn" class="btn-active" onclick="confirmFp('حضور')">👆 توقيع حضور</button>
+  <button id="btnOut" class="btn-wait" onclick="confirmFp('انصراف')">🕐 انتظار موعد الانصراف</button>
+  <div class="card"><p id="todayLog">لم يتم التسجيل اليوم</p></div>
+  <div class="card" style="background:#fffbeb;border:1px dashed #f59e0b">
+    <p style="margin:0;font-size:14px"><span id="notifBtnText">🔔 التنبيه شغال</span> - الساعة 8:25</p>
+    <p style="font-size:12px;color:#666;margin:5px 0">هيجيلك إشعار زي الواتساب لو نسيت تبصم حضور</p>
+    <button onclick="toggleNotif()" style="background:#f59e0b;color:#fff;font-size:14px;padding:10px">تشغيل / إيقاف التنبيه</button>
+    <button onclick="testNotif()" style="background:#eee;color:#111;font-size:13px;padding:8px">جرب التنبيه الآن</button>
+  </div>
+  <button onclick="exportBackup()" style="background:#111;color:#fff;font-size:14px;padding:12px">💾 نسخ احتياطي - انسخ البيانات</button>
+  <button onclick="importBackup()" style="background:#fff;color:#111;border:1px solid #ccc;font-size:14px;padding:12px">📥 استرجاع نسخة احتياطية</button>
 </div>
-
+<div id="page-table" class="hidden"><div class="card"><b>جدول البصمات</b></div><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>حضور</th><th>انصراف</th><th>الحالة</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+<div id="page-balance" class="hidden"><div class="card"><b>السنة المالية: <span id="fiscal"></span></b><p>اعتيادي: إجمالي <span id="regTotal"></span> - استهلكت <span id="regUsed"></span> - باقي <span id="regLeft"></span></p><p>عارضة: إجمالي 7 - استهلكت <span id="casUsed"></span> - باقي <span id="casLeft"></span></p><button style="background:#111;color:#fff" onclick="openLeaveModal('اعتيادي')">+ إضافة إجازة اعتيادي</button><button style="background:#f59e0b;color:#fff" onclick="openLeaveModal('عارضة')">+ إضافة إجازة عارضة</button><div id="leavesList" style="margin-top:10px;font-size:13px"></div></div><div class="card"><b>الدرجة</b><p>الحالية: <span id="gradeNow"></span></p><p>الجاية: <span id="gradeNext"></span></p><p>تاريخ الترقية: <span id="gradeDateDisplay"></span></p><p>باقي: <span id="gradeLeft"></span></p></div></div>
+<div id="page-vac" class="hidden"><div class="card"><b>العطلات</b><p>الجمعة: عطلة رسمية</p><p id="restDisplay"></p></div></div>
+<div id="page-settings" class="hidden"><div class="card"><b>الإعدادات</b><label>تاريخ التعيين</label><input type="date" id="hiring"><label>الدرجة</label><select id="grade"><option>السادسة</option><option>الخامسة</option><option>الرابعة</option><option>الثالثة (ج)</option><option>الثالثة (ب)</option><option>الثالثة (أ)</option><option>الثانية (ب)</option><option>الثانية (أ)</option><option>الأولى (ب)</option><option>الأولى (أ)</option><option>مدير عام</option><option>العالية</option><option>الممتازة</option></select><label>تاريخ الحصول على الدرجة</label><input type="date" id="gradeDate"><label>الراحة الأسبوعية</label><select id="restDay"><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option selected>الخميس</option></select><button style="background:#111;color:#fff" onclick="saveSet()">حفظ الإعدادات</button></div></div>
+<div id="leaveModal" class="modal hidden"><div class="modal-box" style="text-align:right"><h3 id="modalTitle">إضافة إجازة</h3><div class="row"><button class="day-opt selected" onclick="pickDays(1)">يوم 1</button><button class="day-opt" onclick="pickDays(2)">يومان</button><button class="day-opt" onclick="pickDays(3)">3 أيام</button></div><div class="row"><button class="day-opt" onclick="pickDays(4)">4 أيام</button><button class="day-opt" onclick="pickDays(5)">5 أيام</button><button class="day-opt" onclick="pickDays(6)">6 أيام</button></div><label>من تاريخ:</label><input type="date" id="fromDate" onchange="calcToDate()"><label>إلى تاريخ:</label><input type="date" id="toDate" readonly style="background:#eee"><p id="dateInfo" style="font-size:12px;color:#666"></p><div class="row"><button onclick="closeModal('leaveModal')" style="background:#eee;color:#111">إلغاء</button><button style="background:#22c55e;color:#fff" onclick="confirmLeave()">حفظ</button></div></div></div>
+<div id="confirmModal" class="modal hidden"><div class="modal-box"><h2 id="confirmTitle">تأكيد</h2><p id="confirmMsg" style="font-size:18px"></p><p style="font-size:13px;color:#666">الساعة: <span id="confirmTime"></span></p><div class="row"><button onclick="closeModal('confirmModal')" style="background:#eee;color:#111">إلغاء</button><button id="confirmBtn" style="background:#22c55e;color:#fff" onclick="doFp()">تأكيد ✅</button></div></div></div>
+<div style="height:80px"></div>
+<div class="nav"><button class="active" onclick="show('day',this)">اليوم</button><button onclick="show('table',this)">الجدول</button><button onclick="show('balance',this)">رصيدي</button><button onclick="show('vac',this)">الإجازات</button><button onclick="show('settings',this)">الإعدادات</button></div>
 <script>
-function updateClock(){
-  const now=new Date();
-  document.getElementById('time').textContent=now.toLocaleTimeString('ar-EG');
-  document.getElementById('date').textContent=now.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+let settings = JSON.parse(localStorage.getItem('settings')||'{"hiring":"2015-03-10","grade":"الثالثة (ج)","gradeDate":"2023-07-01","restDay":"الخميس"}');
+let logs = JSON.parse(localStorage.getItem('logs')||'{}');
+let leavesData = JSON.parse(localStorage.getItem('leavesData')||'[]');
+let leaves = JSON.parse(localStorage.getItem('leaves')||'{"regular":0,"casual":0}');
+let currentLeaveType='اعتيادي', currentDays=1, pendingFpType='';
+const grades=['السادسة','الخامسة','الرابعة','الثالثة (ج)','الثالثة (ب)','الثالثة (أ)','الثانية (ب)','الثانية (أ)','الأولى (ب)','الأولى (أ)','مدير عام','العالية','الممتازة'];
+const durations=[5,5,5,3,3,3,3,3,1,1,1,1];
+// FIX: stable key YYYY-MM-DD instead of ar-EG string
+function dateKey(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return y+'-'+m+'-'+day; }
+function dayNameAr(d){ return d.toLocaleDateString('ar-EG',{weekday:'long'}); }
+function getFiscal(){let d=new Date(),y=d.getFullYear(),m=d.getMonth()+1;if(m>=7)return y+' - '+(y+1);return (y-1)+' - '+y;}
+function getBalance(){let yrs=(new Date()-new Date(settings.hiring))/(1000*60*60*24*365);let r=21;if(yrs>10)r=30;if(yrs<1)r=15;return r;}
+function getDayType(date){
+  let n=dayNameAr(date); let key=dateKey(date);
+  for(let lv of leavesData){ if(lv.dates.includes(key)) return lv.type==='اعتيادي'?'إجازة اعتيادي':'إجازة عارضة'; }
+  if(n.includes('الجمعة')) return 'عطلة رسمية - الجمعة';
+  if(n.includes(settings.restDay)) return 'راحة أسبوعية';
+  return 'يوم عمل';
 }
-setInterval(updateClock,1000);updateClock();
-
-function loadLog(){
-  const data=JSON.parse(localStorage.getItem('basma_log')||'[]');
-  const box=document.getElementById('log');
-  if(data.length===0){box.innerHTML='<div style="text-align:center;color:#94a3b8">لا يوجد تسجيلات بعد</div>';return}
-  box.innerHTML=data.map(r=>`<div class="log-item"><span>${r.type}</span><span>${r.time}</span></div>`).join('');
+function updateButtons(){
+  let now=new Date(); let minutes=now.getHours()*60+now.getMinutes(); let todayKey=dateKey(now); let hasIn=!!logs[todayKey+'-حضور']; let hasOut=!!logs[todayKey+'-انصراف']; let dayType=getDayType(now);
+  let btnIn=document.getElementById('btnIn'); let btnOut=document.getElementById('btnOut');
+  btnIn.disabled=false; btnOut.disabled=false;
+  if(dayType!=='يوم عمل'){ btnIn.className='btn-done'; btnIn.innerText='اليوم '+dayType; btnIn.disabled=true; }
+  else if(hasIn){ btnIn.className='btn-done'; btnIn.innerText='تم التوقيع بالحضور ✅ '+(logs[todayKey+'-حضور']||''); btnIn.disabled=true; }
+  else if(minutes<360){ btnIn.className='btn-wait'; btnIn.innerText='انتظار موعد الحضور'; btnIn.disabled=true; }
+  else if(minutes>515){ btnIn.className='btn-closed'; btnIn.innerText='انتهى وقت الحضور ⛔ (بعد 8:35)'; btnIn.disabled=true; }
+  else{ btnIn.className='btn-active'; btnIn.innerText='👆 توقيع حضور'; btnIn.disabled=false; }
+  if(dayType!=='يوم عمل'){ btnOut.className='btn-done'; btnOut.innerText='اليوم '+dayType; btnOut.disabled=true; }
+  else if(hasOut){ btnOut.className='btn-done'; btnOut.innerText='تم توقيع الانصراف ✅ '+(logs[todayKey+'-انصراف']||''); btnOut.disabled=true; }
+  else if(minutes<840){ btnOut.className='btn-wait'; btnOut.innerText='🕐 انتظار موعد الانصراف (من 2:00 م)'; btnOut.disabled=true; }
+  else{ btnOut.className='btn-active'; btnOut.innerText='👋 توقيع انصراف'; btnOut.disabled=false; }
+  document.getElementById('todayLog').innerHTML='حضور: '+(logs[todayKey+'-حضور']||'لم يوقع')+'<br>انصراف: '+(logs[todayKey+'-انصراف']||'لم يوقع');
 }
-loadLog();
-function save(type){
-  const now=new Date();
-  const entry={type:type,time:now.toLocaleString('ar-EG')};
-  const data=JSON.parse(localStorage.getItem('basma_log')||'[]');
-  data.unshift(entry);
-  localStorage.setItem('basma_log',JSON.stringify(data));
-  loadLog();
-  document.getElementById('status').textContent='تم '+type+' بنجاح ✅';
-  if(navigator.vibrate) navigator.vibrate(100);
-}
-function checkIn(){save('دخول')}
-function checkOut(){save('خروج')}
+function confirmFp(type){ let now=new Date(); let minutes=now.getHours()*60+now.getMinutes(); let todayKey=dateKey(now); if(type==='حضور'&&(minutes>515||!!logs[todayKey+'-حضور'])) return; if(type==='انصراف'&&(minutes<840||!!logs[todayKey+'-انصراف'])) return; pendingFpType=type; document.getElementById('confirmMsg').innerText='هل أنت متأكد من توقيع '+type+'؟'; document.getElementById('confirmTime').innerText=now.toLocaleTimeString('ar-EG'); document.getElementById('confirmModal').classList.remove('hidden'); }
+function doFp(){ closeModal('confirmModal'); let key=dateKey(new Date())+'-'+pendingFpType; logs[key]=new Date().toLocaleTimeString('ar-EG'); localStorage.setItem('logs',JSON.stringify(logs)); alert('تم توقيع '+pendingFpType+' ✅'); renderAll(); }
+function openLeaveModal(type){ currentLeaveType=type; document.getElementById('modalTitle').innerText='إضافة إجازة '+type; document.getElementById('fromDate').valueAsDate=new Date(); currentDays=1; calcToDate(); document.getElementById('leaveModal').classList.remove('hidden'); }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+function pickDays(d){ currentDays=d; document.querySelectorAll('.day-opt').forEach(b=>b.classList.remove('selected')); event.target.classList.add('selected'); calcToDate(); }
+function calcToDate(){ let from=document.getElementById('fromDate').value; if(!from) return; let fd=new Date(from); let to=new Date(fd); to.setDate(fd.getDate()+currentDays-1); document.getElementById('toDate').valueAsDate=to; document.getElementById('dateInfo').innerText='من '+fd.toLocaleDateString('ar-EG')+' إلى '+to.toLocaleDateString('ar-EG'); }
+function confirmLeave(){ let from=document.getElementById('fromDate').value; let to=document.getElementById('toDate').value; let dates=[]; let cur=new Date(from); let end=new Date(to); while(cur<=end){ dates.push(dateKey(cur)); cur.setDate(cur.getDate()+1); } leavesData.push({type:currentLeaveType,days:currentDays,from,to,dates}); if(currentLeaveType==='اعتيادي') leaves.regular+=currentDays; else leaves.casual+=currentDays; localStorage.setItem('leavesData',JSON.stringify(leavesData)); localStorage.setItem('leaves',JSON.stringify(leaves)); closeModal('leaveModal'); renderBalance(); renderTable(); alert('تم حفظ الإجازة'); }
+function saveSet(){ settings={hiring:document.getElementById('hiring').value,grade:document.getElementById('grade').value,gradeDate:document.getElementById('gradeDate').value,restDay:document.getElementById('restDay').value}; localStorage.setItem('settings',JSON.stringify(settings)); alert('تم الحفظ'); renderAll(); }
+function show(p,btn){ ['day','table','balance','vac','settings'].forEach(x=>document.getElementById('page-'+x).classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+function renderBalance(){ document.getElementById('fiscal').innerText=getFiscal(); let reg=getBalance(); document.getElementById('regTotal').innerText=reg; document.getElementById('regUsed').innerText=leaves.regular; document.getElementById('regLeft').innerText=reg-leaves.regular; document.getElementById('casUsed').innerText=leaves.casual; document.getElementById('casLeft').innerText=7-leaves.casual; document.getElementById('leavesList').innerHTML=leavesData.map(l=>'• '+l.type+' : '+l.from+' → '+l.to+' ('+l.days+' يوم)').join('<br>'); let idx=grades.indexOf(settings.grade); let currentIdx=idx; let gradeDate=new Date(settings.gradeDate); let now=new Date(); let nextDate=new Date(gradeDate); while(true){ let need=durations[currentIdx]||0; if(need===0) break; nextDate=new Date(gradeDate); nextDate.setFullYear(gradeDate.getFullYear()+need); if(nextDate>now) break; gradeDate=new Date(nextDate); currentIdx++; if(currentIdx>=grades.length-1) break; } document.getElementById('gradeNow').innerText=grades[currentIdx]||settings.grade; document.getElementById('gradeNext').innerText=grades[currentIdx+1]||'أعلى درجة'; document.getElementById('gradeDateDisplay').innerText=nextDate.toLocaleDateString('ar-EG'); let diff=nextDate-now; if(diff<=0) document.getElementById('gradeLeft').innerText='مستحقة الآن 🎉'; else{ let y=Math.floor(diff/(1000*60*60*24*365)); let mo=Math.floor((diff%(1000*60*60*24*365))/(1000*60*60*24*30)); let d=Math.floor((diff%(1000*60*60*24*30))/(1000*60*60*24)); document.getElementById('gradeLeft').innerText=y+' سنة و '+mo+' شهر و '+d+' يوم'; } }
+function renderTable(){ let tb=document.getElementById('tableBody'); tb.innerHTML=''; for(let d=1; d<=31; d++){ let date=new Date(new Date().getFullYear(), new Date().getMonth(), d); if(date.getMonth()!==new Date().getMonth()) continue; let dn=dayNameAr(date); let key=dateKey(date); let type=getDayType(date); tb.innerHTML+='<tr><td>'+d+'</td><td>'+dn+'</td><td>'+(logs[key+'-حضور']||'-')+'</td><td>'+(logs[key+'-انصراف']||'-')+'</td><td>'+type+'</td></tr>'; } }
+function exportBackup(){ let data=JSON.stringify({settings,logs,leaves,leavesData}); let ta=document.createElement('textarea'); ta.value=data; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('تم نسخ البيانات ✅ الصقها في أي مكان واحفظها'); }catch(e){ prompt('انسخ البيانات دي واحفظها:',data); } ta.remove(); }
+function importBackup(){ let data=prompt('الصق النسخة الاحتياطية هنا:'); if(!data) return; try{ let o=JSON.parse(data); settings=o.settings||settings; logs=o.logs||logs; leaves=o.leaves||leaves; leavesData=o.leavesData||leavesData; localStorage.setItem('settings',JSON.stringify(settings)); localStorage.setItem('logs',JSON.stringify(logs)); localStorage.setItem('leaves',JSON.stringify(leaves)); localStorage.setItem('leavesData',JSON.stringify(leavesData)); alert('تم الاسترجاع ✅'); renderAll(); }catch(e){ alert('النسخة مش سليمة'); } }
+function renderAll(){ document.getElementById('today').innerText=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); document.getElementById('dayStatus').innerText=getDayType(new Date()); document.getElementById('restDisplay').innerText='راحتك: '+settings.restDay; document.getElementById('hiring').value=settings.hiring; document.getElementById('grade').value=settings.grade; document.getElementById('gradeDate').value=settings.gradeDate; document.getElementById('restDay').value=settings.restDay; document.getElementById('notifBtnText').innerText = notifEnabled ? '🔔 التنبيه شغال' : '🔕 التنبيه متوقف'; renderBalance(); renderTable(); updateButtons(); }
 
-let deferredPrompt=null;
-const installBtn=document.getElementById('installBtn');
-
-// يظهر الزرار دايما، ولو المتصفح يدعم التثبيت هنستخدمه
-window.addEventListener('beforeinstallprompt', (e)=>{
-  e.preventDefault();
-  deferredPrompt=e;
-  installBtn.classList.remove('hidden');
-});
-
-function installApp(){
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(choice=>{
-      if(choice.outcome==='accepted'){
-        installBtn.textContent='✅ تم التثبيت';
-      }
-      deferredPrompt=null;
-    });
-  }else{
-    // للموبايلات اللي مش بتدعم beforeinstallprompt - نوريه الطريقة اليدوي
-    alert('لتثبيت التطبيق:\n\n1- دوس الـ 3 نقط ⋮ فوق في Chrome\n2- اختار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"\n\nهيظهر بأيقونة على موبايلك ويشتغل بدون نت!');
+// ===== تنبيه 8:25 =====
+let notifEnabled = localStorage.getItem('notifEnabled') !== 'false';
+function askNotifPermission(){ if('Notification' in window){ if(Notification.permission === 'default'){ Notification.requestPermission(); } } }
+function showNotif(title, body){
+  if('Notification' in window && Notification.permission === 'granted'){
+    navigator.serviceWorker.ready.then(reg=>{ reg.showNotification(title, {body: body, icon: 'icon-192.png', badge: 'icon-192.png', vibrate: [200,100,200], requireInteraction: true, tag: 'basma-attendance'}); }).catch(()=>{ new Notification(title, {body: body, icon: 'icon-192.png'}); });
+  } else {
+    if(navigator.vibrate) navigator.vibrate([300,100,300]);
+    alert(title + "\n" + body);
   }
 }
-
-// لو التطبيق متثبت already اخفي الزرار
-window.addEventListener('appinstalled', ()=>{
-  installBtn.classList.add('hidden');
-});
-if(window.matchMedia('(display-mode: standalone)').matches){
-  installBtn.classList.add('hidden');
+function testNotif(){ askNotifPermission(); setTimeout(()=>showNotif('⏰ بصمة الحضور - تجربة', 'ده شكل التنبيه اللي هيجيلك 8:25 لو نسيت'), 1000); }
+function checkAttendanceReminder(){
+  if(!notifEnabled) return;
+  let now = new Date(); let h = now.getHours(); let m = now.getMinutes(); let todayKey = dateKey(now); let hasIn = !!logs[todayKey+'-حضور']; let dayType = getDayType(now);
+  if(dayType !== 'يوم عمل') return;
+  if(h===8 && m===25 && !hasIn){
+    let last = localStorage.getItem('lastNotifDate'); let todayStr = now.toDateString();
+    if(last !== todayStr){ showNotif('⏰ بصمة الحضور', 'باقي 10 دقايق وتقفل! الساعة 8:35 البصمة هتقفل، الحق ابصم دلوقتي'); localStorage.setItem('lastNotifDate', todayStr); if(navigator.vibrate) navigator.vibrate([400,100,400,100,400]); }
+  }
+  if(h===13 && m===55){
+    let hasOut = !!logs[todayKey+'-انصراف']; let last2 = localStorage.getItem('lastNotifOutDate'); let todayStr = now.toDateString();
+    if(!hasOut && last2 !== todayStr){ showNotif('👋 بصمة الانصراف', 'الساعة 2:00 موعد الانصراف قرب، متنساش تبصم انصراف'); localStorage.setItem('lastNotifOutDate', todayStr); }
+  }
 }
+setInterval(checkAttendanceReminder, 60000);
+setTimeout(checkAttendanceReminder, 5000);
+setTimeout(askNotifPermission, 2000);
+function toggleNotif(){ notifEnabled = !notifEnabled; localStorage.setItem('notifEnabled', notifEnabled); document.getElementById('notifBtnText').innerText = notifEnabled ? '🔔 التنبيه شغال' : '🔕 التنبيه متوقف'; if(notifEnabled) askNotifPermission(); alert(notifEnabled ? 'تم تشغيل تنبيه 8:25 ✅' : 'تم إيقاف التنبيه'); }
 
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js');
-}
+// PWA Install
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('installBtn').style.display='block'; });
+function installApp(){ if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; }); } else { alert('من الموبايل: دوس 3 نقط ⋮ -> Add to Home screen / تثبيت التطبيق'); } }
+window.addEventListener('appinstalled',()=>{ document.getElementById('installBtn').style.display='none'; });
+if(window.matchMedia('(display-mode: standalone)').matches) document.getElementById('installBtn').style.display='none';
+
+renderAll(); setInterval(()=>{ document.getElementById('clock').innerText='الساعة الآن: '+new Date().toLocaleTimeString('ar-EG'); updateButtons(); },30000);
+document.getElementById('clock').innerText='الساعة الآن: '+new Date().toLocaleTimeString('ar-EG');
 </script>
-</body>
-</html>
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body></html>

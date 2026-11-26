@@ -1,12 +1,11 @@
 {
-  "name": "نظام البصمة - ستار هاوس",
-  "short_name": "البصمة",
-  "start_url": "/basma/",
-  "scope": "/basma/",
+  "name": "بصمة - حضور وانصراف",
+  "short_name": "بصمة",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
-  "orientation": "portrait",
+  "theme_color": "#22c55e",
   "icons": [
     {
       "src": "icon-192.png",
