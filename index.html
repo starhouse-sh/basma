@@ -38,48 +38,32 @@
   <button id="btnIn" class="btn-active" onclick="confirmFp('حضور')">👆 توقيع حضور</button>
   <button id="btnOut" class="btn-wait" onclick="confirmFp('انصراف')">🕐 انتظار موعد الانصراف</button>
   <div class="card"><p id="todayLog">لم يتم التسجيل اليوم</p></div>
-  <div class="card" style="background:#fffbeb;border:1px dashed #f59e0b">
-    <p style="margin:0;font-size:14px"><span id="notifBtnText">🔔 التنبيه شغال</span> - الساعة 8:25</p>
-    <p style="font-size:12px;color:#666;margin:5px 0">هيجيلك إشعار زي الواتساب لو نسيت تبصم حضور</p>
-    <button onclick="toggleNotif()" style="background:#f59e0b;color:#fff;font-size:14px;padding:10px">تشغيل / إيقاف التنبيه</button>
-    <button onclick="testNotif()" style="background:#eee;color:#111;font-size:13px;padding:8px">جرب التنبيه الآن</button>
+  <div class="card" id="notifCard" style="background:#dcfce7;border:2px solid #22c55e">
+    <p style="margin:0;font-size:16px;font-weight:bold;text-align:center"><span id="notifBtnText">🔔 التنبيه شغال</span></p>
+    <p style="font-size:12px;color:#666;margin:8px 0;text-align:center">الساعة 8:25 حضور - الساعة 1:55 انصراف<br>المنبه هيرن ومش هيقف غير لما تدوس تم ✅</p>
+    <button id="notifToggleBtn" onclick="toggleNotif()" style="background:#22c55e;color:#fff;font-size:16px;padding:14px">⏹️ إيقاف التنبيه</button>
+    <button onclick="testNotif()" style="background:#111;color:#fff;font-size:14px;padding:12px">🔔 جرب المنبه الآن - هيرن لحد ما تدوس تم</button>
+    <p style="font-size:11px;color:#888;text-align:center;margin:5px 0">⚠️ سيب التطبيق مفتوح في الخلفية، واسمح للصوت والاهتزاز أول مرة</p>
   </div>
+  <div id="alarmModal" class="modal hidden" style="background:rgba(220,38,38,0.95);z-index:200">
+    <div class="modal-box" style="background:#fff;padding:25px">
+      <div style="font-size:60px;animation:shake 0.5s infinite">⏰</div>
+      <h2 id="alarmTitle" style="color:#dc2626;margin:10px 0">بصمة الحضور!</h2>
+      <p id="alarmMsg" style="font-size:17px;font-weight:bold">باقي 10 دقايق وتقفل! الحق ابصم دلوقتي</p>
+      <p id="alarmTime" style="font-size:28px;font-weight:900"></p>
+      <button onclick="stopAlarm()" style="background:#22c55e;color:#fff;font-size:22px;padding:20px">تم ✅ وقف المنبه</button>
+      <button onclick="snoozeAlarm()" style="background:#f59e0b;color:#fff;font-size:14px;padding:12px">غفوة 5 دقايق 😴</button>
+    </div>
+  </div>
+  <style>@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}</style>
   <button onclick="exportBackup()" style="background:#111;color:#fff;font-size:14px;padding:12px">💾 نسخ احتياطي - انسخ البيانات</button>
   <button onclick="importBackup()" style="background:#fff;color:#111;border:1px solid #ccc;font-size:14px;padding:12px">📥 استرجاع نسخة احتياطية</button>
 </div>
 <div id="page-table" class="hidden"><div class="card"><b>جدول البصمات</b></div><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>حضور</th><th>انصراف</th><th>الحالة</th></tr></thead><tbody id="tableBody"></tbody></table></div>
 <div id="page-balance" class="hidden"><div class="card"><b>السنة المالية: <span id="fiscal"></span></b><p>اعتيادي: إجمالي <span id="regTotal"></span> - استهلكت <span id="regUsed"></span> - باقي <span id="regLeft"></span></p><p>عارضة: إجمالي 7 - استهلكت <span id="casUsed"></span> - باقي <span id="casLeft"></span></p><button style="background:#111;color:#fff" onclick="openLeaveModal('اعتيادي')">+ إضافة إجازة اعتيادي</button><button style="background:#f59e0b;color:#fff" onclick="openLeaveModal('عارضة')">+ إضافة إجازة عارضة</button><div id="leavesList" style="margin-top:10px;font-size:13px"></div></div><div class="card"><b>الدرجة</b><p>الحالية: <span id="gradeNow"></span></p><p>الجاية: <span id="gradeNext"></span></p><p>تاريخ الترقية: <span id="gradeDateDisplay"></span></p><p>باقي: <span id="gradeLeft"></span></p></div></div>
-<div id="page-vac" class="hidden">
-  <div class="card">
-    <b>🇪🇬 الإجازات الرسمية - مصر <span id="vacYear"></span></b>
-    <p s<div id="page-settings" class="hidden">
-<div class="card"><b>الإعدادات</b><label>تاريخ التعيين</label><input type="date" id="hiring"><label>الدرجة</label><select id="grade"><option>السادسة</option><option>الخامسة</option><option>الرابعة</option><option>الثالثة (ج)</option><option>الثالثة (ب)</option><option>الثالثة (أ)</option><option>الثانية (ب)</option><option>الثانية (أ)</option><option>الأولى (ب)</option><option>الأولى (أ)</option><option>مدير عام</option><option>العالية</option><option>الممتازة</option></select><label>تاريخ الحصول على الدرجة</label><input type="date" id="gradeDate"><label>الراحة الأسبوعية</label><select id="restDay"><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option selected>الخميس</option></select><button style="background:#111;color:#fff" onclick="saveSet()">حفظ الإعدادات</button></div>
-<div class="card" id="notifCard" style="background:#dcfce7;border:2px solid #22c55e">
-    <p style="margin:0;font-size:16px;font-weight:bold;text-align:center"><span id="notifBtnText">🔔 التنبيه شغال</span></p>
-    <p style="font-size:12px;color:#666;margin:8px 0;text-align:center">الساعة 8:25 حضور - الساعة 1:55 انصراف<br>المنبه هيرن ومش هيقف غير لما تدوس تم</p>
-    <button id="notifToggleBtn" onclick="toggleNotif()" style="background:#22c55e;color:#fff;font-size:16px;padding:14px">⏹️ إيقاف التنبيه</button>
-    <button onclick="testNotif()" style="background:#111;color:#fff;font-size:14px;padding:12px">🔔 جرب المنبه الآن - هيرن لحد ما تدوس تم</button>
-  </div>
-  
-<div class="card">
-    <b>💾 النسخ الاحتياطي</b>
-    <button onclick="exportBackup()" style="background:#111;color:#fff;font-size:14px;padding:12px">💾 نسخ احتياطي - انسخ البيانات</button>
-    <button onclick="importBackup()" style="background:#fff;color:#111;border:1px solid #ccc;font-size:14px;padding:12px">📥 استرجاع نسخة احتياطية</button>
-  </div>
-  
-</div>
-<div id="alarmModal" class="modal hidden" style="background:rgba(220,38,38,0.95);z-index:200">
-    <div class="modal-box" style="background:#fff;padding:25px">
-      <div style="font-size:60px;animation:shake 0.5s infinite">⏰</div>
-      <h2 id="alarmTitle" style="color:#dc2626;margin:10px 0">بصمة الحضور!</h2>
-      <p id="alarmMsg" style="font-size:17px;font-weight:bold">باقي 10 دقايق وتقفل!</p>
-      <p id="alarmTime" style="font-size:28px;font-weight:900"></p>
-      <button onclick="stopAlarm()" style="background:#22c55e;color:#fff;font-size:22px;padding:20px">تم ✅ وقف المنبه</button>
-      <button onclick="snoozeAlarm()" style="background:#f59e0b;color:#fff;font-size:14px;padding:12px">غفوة 5 دقايق</button>
-    </div>
-  </div>
-  <style>@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}</style>
-<div id="leaveModal"  class="modal hidden"><div class="modal-box" style="text-align:right"><h3 id="modalTitle">إضافة إجازة</h3><div class="row"><button class="day-opt selected" onclick="pickDays(1)">يوم 1</button><button class="day-opt" onclick="pickDays(2)">يومان</button><button class="day-opt" onclick="pickDays(3)">3 أيام</button></div><div class="row"><button class="day-opt" onclick="pickDays(4)">4 أيام</button><button class="day-opt" onclick="pickDays(5)">5 أيام</button><button class="day-opt" onclick="pickDays(6)">6 أيام</button></div><label>من تاريخ:</label><input type="date" id="fromDate" onchange="calcToDate()"><label>إلى تاريخ:</label><input type="date" id="toDate" readonly style="background:#eee"><p id="dateInfo" style="font-size:12px;color:#666"></p><div class="row"><button onclick="closeModal('leaveModal')" style="background:#eee;color:#111">إلغاء</button><button style="background:#22c55e;color:#fff" onclick="confirmLeave()">حفظ</button></div></div></div>
+<div id="page-vac" class="hidden"><div class="card"><b>العطلات</b><p>الجمعة: عطلة رسمية</p><p id="restDisplay"></p></div></div>
+<div id="page-settings" class="hidden"><div class="card"><b>الإعدادات</b><label>تاريخ التعيين</label><input type="date" id="hiring"><label>الدرجة</label><select id="grade"><option>السادسة</option><option>الخامسة</option><option>الرابعة</option><option>الثالثة (ج)</option><option>الثالثة (ب)</option><option>الثالثة (أ)</option><option>الثانية (ب)</option><option>الثانية (أ)</option><option>الأولى (ب)</option><option>الأولى (أ)</option><option>مدير عام</option><option>العالية</option><option>الممتازة</option></select><label>تاريخ الحصول على الدرجة</label><input type="date" id="gradeDate"><label>الراحة الأسبوعية</label><select id="restDay"><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option selected>الخميس</option></select><button style="background:#111;color:#fff" onclick="saveSet()">حفظ الإعدادات</button></div></div>
+<div id="leaveModal" class="modal hidden"><div class="modal-box" style="text-align:right"><h3 id="modalTitle">إضافة إجازة</h3><div class="row"><button class="day-opt selected" onclick="pickDays(1)">يوم 1</button><button class="day-opt" onclick="pickDays(2)">يومان</button><button class="day-opt" onclick="pickDays(3)">3 أيام</button></div><div class="row"><button class="day-opt" onclick="pickDays(4)">4 أيام</button><button class="day-opt" onclick="pickDays(5)">5 أيام</button><button class="day-opt" onclick="pickDays(6)">6 أيام</button></div><label>من تاريخ:</label><input type="date" id="fromDate" onchange="calcToDate()"><label>إلى تاريخ:</label><input type="date" id="toDate" readonly style="background:#eee"><p id="dateInfo" style="font-size:12px;color:#666"></p><div class="row"><button onclick="closeModal('leaveModal')" style="background:#eee;color:#111">إلغاء</button><button style="background:#22c55e;color:#fff" onclick="confirmLeave()">حفظ</button></div></div></div>
 <div id="confirmModal" class="modal hidden"><div class="modal-box"><h2 id="confirmTitle">تأكيد</h2><p id="confirmMsg" style="font-size:18px"></p><p style="font-size:13px;color:#666">الساعة: <span id="confirmTime"></span></p><div class="row"><button onclick="closeModal('confirmModal')" style="background:#eee;color:#111">إلغاء</button><button id="confirmBtn" style="background:#22c55e;color:#fff" onclick="doFp()">تأكيد ✅</button></div></div></div>
 <div style="height:80px"></div>
 <div class="nav"><button class="active" onclick="show('day',this)">اليوم</button><button onclick="show('table',this)">الجدول</button><button onclick="show('balance',this)">رصيدي</button><button onclick="show('vac',this)">الإجازات</button><button onclick="show('settings',this)">الإعدادات</button></div>
@@ -131,9 +115,7 @@ function renderBalance(){ document.getElementById('fiscal').innerText=getFiscal(
 function renderTable(){ let tb=document.getElementById('tableBody'); tb.innerHTML=''; for(let d=1; d<=31; d++){ let date=new Date(new Date().getFullYear(), new Date().getMonth(), d); if(date.getMonth()!==new Date().getMonth()) continue; let dn=dayNameAr(date); let key=dateKey(date); let type=getDayType(date); tb.innerHTML+='<tr><td>'+d+'</td><td>'+dn+'</td><td>'+(logs[key+'-حضور']||'-')+'</td><td>'+(logs[key+'-انصراف']||'-')+'</td><td>'+type+'</td></tr>'; } }
 function exportBackup(){ let data=JSON.stringify({settings,logs,leaves,leavesData}); let ta=document.createElement('textarea'); ta.value=data; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('تم نسخ البيانات ✅ الصقها في أي مكان واحفظها'); }catch(e){ prompt('انسخ البيانات دي واحفظها:',data); } ta.remove(); }
 function importBackup(){ let data=prompt('الصق النسخة الاحتياطية هنا:'); if(!data) return; try{ let o=JSON.parse(data); settings=o.settings||settings; logs=o.logs||logs; leaves=o.leaves||leaves; leavesData=o.leavesData||leavesData; localStorage.setItem('settings',JSON.stringify(settings)); localStorage.setItem('logs',JSON.stringify(logs)); localStorage.setItem('leaves',JSON.stringify(leaves)); localStorage.setItem('leavesData',JSON.stringify(leavesData)); alert('تم الاسترجاع ✅'); renderAll(); }catch(e){ alert('النسخة مش سليمة'); } }
-function renderAll(){ document.getElementById('today').innerText=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); document.getElementById('dayStatus').innerText=getDayType(new Date()); document.getElementById('restDisplay').innerText='راحتك: '+settings.restDay; document.getElementById('hiring').value=settings.hiring; document.getElementById('grade').value=settings.grade; document.getElementById('gradeDate').value=settings.gradeDate; document.getElementById('restDay').value=settings.restDay; document.getElementById('notifBtnText').innerText = notifEnabled ? '🔔 التنبيه شغال' : '🔕 التنبيه متوقف'; renderBalance(); renderTable(); updateButtons(); }
-
-// ===== تنبيه 8:25 =====
+function renderAll(){ document.getElementById('today').innerText=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); document.getElementById('dayStatus').innerText=getDayType(new Date()); document.getElementById('restDisplay').innerText='راحتك: '+settings.restDay; document.getElementById('hiring').value=settings.hiring; document.getElementById('grade').value=settings.grade; document.getElementById('gradeDate').value=settings.gradeDate; document.getElementById('restDay').value=settings.restDay; refreshNotifBtn(); renderBalance(); renderTable(); updateButtons(); }
 
 // ===== منبه بيرن لحد ما تدوس تم =====
 let notifEnabled = localStorage.getItem('notifEnabled') !== 'false';
@@ -141,63 +123,72 @@ let alarmInterval=null; let alarmAudioCtx=null; let alarmVibInterval=null; let s
 function refreshNotifBtn(){
   const card=document.getElementById('notifCard'); const txt=document.getElementById('notifBtnText'); const btn=document.getElementById('notifToggleBtn');
   if(!card||!txt||!btn) return;
-  if(notifEnabled){ card.style.background='#dcfce7'; card.style.border='2px solid #22c55e'; txt.innerText='🔔 التنبيه شغال'; txt.style.color='#166534'; btn.innerText='⏹️ إيقاف التنبيه'; btn.style.background='#22c55e'; }
-  else { card.style.background='#fef3c7'; card.style.border='2px solid #f59e0b'; txt.innerText='🔕 التنبيه متوقف'; txt.style.color='#92400e'; btn.innerText='▶️ تشغيل التنبيه'; btn.style.background='#f59e0b'; }
+  if(notifEnabled){ card.style.background='#dcfce7'; card.style.border='2px solid #22c55e'; txt.innerText='🔔 التنبيه شغال'; txt.style.color='#166534'; btn.innerText='⏹️ إيقاف التنبيه'; btn.style.background='#22c55e'; btn.style.color='#fff'; }
+  else { card.style.background='#fef3c7'; card.style.border='2px solid #f59e0b'; txt.innerText='🔕 التنبيه متوقف'; txt.style.color='#92400e'; btn.innerText='▶️ تشغيل التنبيه'; btn.style.background='#f59e0b'; btn.style.color='#fff'; }
 }
 function askNotifPermission(){ if('Notification' in window){ if(Notification.permission==='default'){ Notification.requestPermission(); } } }
-function playBeep(){ try{ if(!alarmAudioCtx) alarmAudioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(alarmAudioCtx.state==='suspended') alarmAudioCtx.resume(); const o=alarmAudioCtx.createOscillator(); const g=alarmAudioCtx.createGain(); o.connect(g); g.connect(alarmAudioCtx.destination); o.frequency.value=880; o.type='square'; g.gain.setValueAtTime(0.25, alarmAudioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, alarmAudioCtx.currentTime+0.8); o.start(); o.stop(alarmAudioCtx.currentTime+0.8);}catch(e){} }
-function startRinging(title,msg){
-  const modal=document.getElementById('alarmModal'); if(!modal) return;
-  document.getElementById('alarmTitle').innerText=title; document.getElementById('alarmMsg').innerText=msg;
-  modal.classList.remove('hidden'); document.getElementById('alarmTime').innerText=new Date().toLocaleTimeString('ar-EG');
-  if(alarmInterval) clearInterval(alarmInterval); playBeep();
-  alarmInterval=setInterval(()=>{ playBeep(); const el=document.getElementById('alarmTime'); if(el) el.innerText=new Date().toLocaleTimeString('ar-EG'); },1000);
-  if(alarmVibInterval) clearInterval(alarmVibInterval); if(navigator.vibrate) navigator.vibrate([500,200,500]); alarmVibInterval=setInterval(()=>{ if(navigator.vibrate) navigator.vibrate([500,200,500]); },1200);
-  if('Notification' in window && Notification.permission==='granted'){ try{ navigator.serviceWorker.ready.then(reg=>{ reg.showNotification(title,{body:msg,icon:'icon-192.png',requireInteraction:true,tag:'basma-alarm'}); }); }catch(e){} }
-}
-function stopAlarm(){ const m=document.getElementById('alarmModal'); if(m) m.classList.add('hidden'); if(alarmInterval){ clearInterval(alarmInterval); alarmInterval=null; } if(alarmVibInterval){ clearInterval(alarmVibInterval); alarmVibInterval=null; } if(navigator.vibrate) navigator.vibrate(0); if(alarmAudioCtx){ try{ alarmAudioCtx.close(); }catch(e){} alarmAudioCtx=null; } }
-function snoozeAlarm(){ stopAlarm(); snoozeUntil=Date.now()+5*60*1000; alert('تمام، هيرن تاني بعد 5 دقايق'); }
-function showNotif(t,b){ startRinging(t,b); }
-function testNotif(){ askNotifPermission(); try{ if(!alarmAudioCtx) alarmAudioCtx=new (window.AudioContext||window.webkitAudioContext)(); alarmAudioCtx.resume(); }catch(e){} setTimeout(()=>{ startRinging('⏰ بصمة الحضور - تجربة','ده المنبه اللي هيرن 8:25 - مش هيقف غير لما تدوس تم'); },500); }
-function checkAttendanceReminder(){
-  if(!notifEnabled) return; if(Date.now()<snoozeUntil) return; const mm=document.getElementById('alarmModal'); if(mm && !mm.classList.contains('hidden')) return;
-  let now=new Date(); let h=now.getHours(); let m=now.getMinutes(); let todayKey=dateKey(now); let hasIn=!!logs[todayKey+'-حضور']; let dayType=getDayType(now); if(dayType!=='يوم عمل') return;
-  if(h===8 && m===25 && !hasIn){ let last=localStorage.getItem('lastNotifDate'); let ts=now.toDateString(); if(last!==ts){ localStorage.setItem('lastNotifDate',ts); startRinging('⏰ بصمة الحضور!','باقي 10 دقايق وتقفل! الساعة 8:35 البصمة هتقفل'); } }
-  if(h===13 && m===55){ let hasOut=!!logs[todayKey+'-انصراف']; let last2=localStorage.getItem('lastNotifOutDate'); let ts=now.toDateString(); if(!hasOut && last2!==ts){ localStorage.setItem('lastNotifOutDate',ts); startRinging('👋 بصمة الانصراف!','الساعة 2:00 قرب، متنساش تبصم انصراف'); } }
-}
-setInterval(checkAttendanceReminder,20000); setTimeout(checkAttendanceReminder,3000); setTimeout(askNotifPermission,2000);
-function toggleNotif(){ notifEnabled=!notifEnabled; localStorage.setItem('notifEnabled',notifEnabled); refreshNotifBtn(); if(notifEnabled){ askNotifPermission(); alert('تم تشغيل المنبه'); } else { stopAlarm(); alert('تم إيقاف المنبه'); } }
-
-// ===== الإجازات الرسمية مصر =====
-let currentVacYear=new Date().getFullYear();
-const EGYPT_HOLIDAYS_STATIC={2025:[["2025-01-07","عيد الميلاد المجيد","ديني"],["2025-01-25","ثورة 25 يناير","وطني"],["2025-03-30","عيد الفطر","ديني"],["2025-04-21","شم النسيم","اجتماعي"],["2025-04-25","تحرير سيناء","وطني"],["2025-05-01","عيد العمال","وطني"],["2025-06-06","وقفة عرفات","ديني"],["2025-06-26","رأس السنة الهجرية","ديني"],["2025-06-30","30 يونيو","وطني"],["2025-07-23","23 يوليو","وطني"],["2025-09-04","المولد النبوي","ديني"],["2025-10-06","6 أكتوبر","وطني"]],2026:[["2026-01-07","عيد الميلاد المجيد","ديني"],["2026-01-25","ثورة 25 يناير","وطني"],["2026-03-20","عيد الفطر","ديني"],["2026-04-13","شم النسيم","اجتماعي"],["2026-04-25","تحرير سيناء","وطني"],["2026-05-01","عيد العمال","وطني"],["2026-05-27","وقفة عرفات","ديني"],["2026-05-28","عيد الأضحى","ديني"],["2026-06-16","رأس السنة الهجرية","ديني"],["2026-06-30","30 يونيو","وطني"],["2026-07-23","23 يوليو","وطني"],["2026-08-26","المولد النبوي","ديني"],["2026-10-06","6 أكتوبر","وطني"]],2027:[["2027-01-07","عيد الميلاد المجيد","ديني"],["2027-01-25","ثورة 25 يناير","وطني"],["2027-03-09","عيد الفطر","ديني"]]};
-function renderOfficialHolidays(year){
-  const yEl=document.getElementById('vacYear'); if(yEl) yEl.innerText=year;
-  const tbody=document.getElementById('officialHolidays'); if(!tbody) return;
-  let list=EGYPT_HOLIDAYS_STATIC[year]||[];
-  try{ let cached=JSON.parse(localStorage.getItem('onlineHolidays_'+year)||'[]'); if(cached.length>0) list=cached; }catch(e){}
-  if(list.length===0){ tbody.innerHTML='<tr><td colspan="4">لا توجد بيانات</td></tr>'; return; }
-  tbody.innerHTML=list.map(([date,name,type])=>{
-    let d=new Date(date); let dayName=d.toLocaleDateString('ar-EG',{weekday:'long'});
-    let today=dateKey(new Date())===date?'style="background:#dcfce7"':'';
-    return `<tr ${today}><td>${date}</td><td>${dayName}</td><td>${name}</td><td><span style="background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:8px;font-size:11px">${type}</span></td></tr>`;
-  }).join('');
-}
-function changeVacYear(delta){ currentVacYear+=delta; renderOfficialHolidays(currentVacYear); }
-async function refreshHolidays(){
-  const status=document.getElementById('onlineStatus'); if(status) status.innerText='⏳ جاري التحديث...';
+function playBeep(){
   try{
-    let res=await fetch(`https://date.nager.at/api/v3/PublicHolidays/${currentVacYear}/EG`);
-    if(!res.ok) throw new Error();
-    let data=await res.json(); let mapped=data.map(h=>[h.date, h.localName||h.name, 'رسمية']);
-    localStorage.setItem('onlineHolidays_'+currentVacYear, JSON.stringify(mapped));
-    if(status) status.innerText='✅ تم التحديث';
-    renderOfficialHolidays(currentVacYear);
-  }catch(e){ if(status) status.innerText='⚠️ مفيش نت - عرض المحفوظ'; renderOfficialHolidays(currentVacYear); }
-  setTimeout(()=>{ if(status) status.innerText=''; },3000);
+    if(!alarmAudioCtx) alarmAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(alarmAudioCtx.state==='suspended') alarmAudioCtx.resume();
+    const o=alarmAudioCtx.createOscillator(); const g=alarmAudioCtx.createGain();
+    o.connect(g); g.connect(alarmAudioCtx.destination); o.frequency.value=880; o.type='square';
+    g.gain.setValueAtTime(0.25, alarmAudioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, alarmAudioCtx.currentTime+0.8);
+    o.start(); o.stop(alarmAudioCtx.currentTime+0.8);
+  }catch(e){}
 }
-window.addEventListener('online', ()=>{ refreshHolidays(); });
+function startRinging(title,msg){
+  document.getElementById('alarmTitle').innerText=title; document.getElementById('alarmMsg').innerText=msg;
+  document.getElementById('alarmModal').classList.remove('hidden');
+  document.getElementById('alarmTime').innerText=new Date().toLocaleTimeString('ar-EG');
+  if(alarmInterval) clearInterval(alarmInterval); playBeep();
+  alarmInterval=setInterval(()=>{ playBeep(); document.getElementById('alarmTime').innerText=new Date().toLocaleTimeString('ar-EG'); },1000);
+  if(alarmVibInterval) clearInterval(alarmVibInterval);
+  if(navigator.vibrate) navigator.vibrate([500,200,500]);
+  alarmVibInterval=setInterval(()=>{ if(navigator.vibrate) navigator.vibrate([500,200,500]); },1200);
+  if('Notification' in window && Notification.permission==='granted'){ try{ navigator.serviceWorker.ready.then(reg=>{ reg.showNotification(title,{body:msg,icon:'icon-192.png',requireInteraction:true,tag:'basma-alarm',vibrate:[500,200,500]}); }); }catch(e){} }
+}
+function stopAlarm(){
+  document.getElementById('alarmModal').classList.add('hidden');
+  if(alarmInterval){ clearInterval(alarmInterval); alarmInterval=null; }
+  if(alarmVibInterval){ clearInterval(alarmVibInterval); alarmVibInterval=null; }
+  if(navigator.vibrate) navigator.vibrate(0);
+  if(alarmAudioCtx){ try{ alarmAudioCtx.close(); }catch(e){} alarmAudioCtx=null; }
+}
+function snoozeAlarm(){ stopAlarm(); snoozeUntil=Date.now()+5*60*1000; alert('تمام، هيرن تاني بعد 5 دقايق'); }
+function showNotif(title,body){ startRinging(title,body); }
+function testNotif(){
+  askNotifPermission();
+  try{ if(!alarmAudioCtx) alarmAudioCtx=new (window.AudioContext||window.webkitAudioContext)(); alarmAudioCtx.resume(); }catch(e){}
+  setTimeout(()=>{ startRinging('⏰ بصمة الحضور - تجربة','ده شكل المنبه اللي هيرن 8:25 لو نسيت - مش هيقف غير لما تدوس تم'); },500);
+}
+function checkAttendanceReminder(){
+  if(!notifEnabled) return; if(Date.now()<snoozeUntil) return;
+  if(!document.getElementById('alarmModal').classList.contains('hidden')) return;
+  let now=new Date(); let h=now.getHours(); let m=now.getMinutes(); let todayKey=dateKey(now); let hasIn=!!logs[todayKey+'-حضور']; let dayType=getDayType(now);
+  if(dayType!=='يوم عمل') return;
+  if(h===8 && m===25 && !hasIn){ let last=localStorage.getItem('lastNotifDate'); let todayStr=now.toDateString(); if(last!==todayStr){ localStorage.setItem('lastNotifDate',todayStr); startRinging('⏰ بصمة الحضور!','باقي 10 دقايق وتقفل! الساعة 8:35 البصمة هتقفل، الحق ابصم دلوقتي'); } }
+  if(h===13 && m===55){ let hasOut=!!logs[todayKey+'-انصراف']; let last2=localStorage.getItem('lastNotifOutDate'); let todayStr=now.toDateString(); if(!hasOut && last2!==todayStr){ localStorage.setItem('lastNotifOutDate',todayStr); startRinging('👋 بصمة الانصراف!','الساعة 2:00 موعد الانصراف قرب، متنساش تبصم انصراف'); } }
+}
+setInterval(checkAttendanceReminder,20000);
+setTimeout(checkAttendanceReminder,3000);
+setTimeout(askNotifPermission,2000);
+function toggleNotif(){
+  notifEnabled=!notifEnabled; localStorage.setItem('notifEnabled',notifEnabled); refreshNotifBtn();
+  if(notifEnabled){ askNotifPermission(); alert('تم تشغيل المنبه - هيرن 8:25 و 1:55'); } else { stopAlarm(); alert('تم إيقاف المنبه'); }
+}
 
+// PWA Install
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('installBtn').style.display='block'; });
+function installApp(){ if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; }); } else { alert('من الموبايل: دوس 3 نقط ⋮ -> Add to Home screen / تثبيت التطبيق'); } }
+window.addEventListener('appinstalled',()=>{ document.getElementById('installBtn').style.display='none'; });
+if(window.matchMedia('(display-mode: standalone)').matches) document.getElementById('installBtn').style.display='none';
+
+renderAll(); refreshNotifBtn(); setInterval(()=>{ document.getElementById('clock').innerText='الساعة الآن: '+new Date().toLocaleTimeString('ar-EG'); updateButtons(); },30000);
+document.getElementById('clock').innerText='الساعة الآن: '+new Date().toLocaleTimeString('ar-EG');
+</script>
+<script>
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
 </body></html>
