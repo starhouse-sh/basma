@@ -53,21 +53,22 @@
   <div class="card">
     <b>🇪🇬 الإجازات الرسمية - مصر <span id="vacYear"></span></b>
     <p s<div id="page-settings" class="hidden">
-  <div class="card" id="notifCard" style="background:#dcfce7;border:2px solid #22c55e">
+<div class="card"><b>الإعدادات</b><label>تاريخ التعيين</label><input type="date" id="hiring"><label>الدرجة</label><select id="grade"><option>السادسة</option><option>الخامسة</option><option>الرابعة</option><option>الثالثة (ج)</option><option>الثالثة (ب)</option><option>الثالثة (أ)</option><option>الثانية (ب)</option><option>الثانية (أ)</option><option>الأولى (ب)</option><option>الأولى (أ)</option><option>مدير عام</option><option>العالية</option><option>الممتازة</option></select><label>تاريخ الحصول على الدرجة</label><input type="date" id="gradeDate"><label>الراحة الأسبوعية</label><select id="restDay"><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option selected>الخميس</option></select><button style="background:#111;color:#fff" onclick="saveSet()">حفظ الإعدادات</button></div>
+<div class="card" id="notifCard" style="background:#dcfce7;border:2px solid #22c55e">
     <p style="margin:0;font-size:16px;font-weight:bold;text-align:center"><span id="notifBtnText">🔔 التنبيه شغال</span></p>
     <p style="font-size:12px;color:#666;margin:8px 0;text-align:center">الساعة 8:25 حضور - الساعة 1:55 انصراف<br>المنبه هيرن ومش هيقف غير لما تدوس تم</p>
     <button id="notifToggleBtn" onclick="toggleNotif()" style="background:#22c55e;color:#fff;font-size:16px;padding:14px">⏹️ إيقاف التنبيه</button>
     <button onclick="testNotif()" style="background:#111;color:#fff;font-size:14px;padding:12px">🔔 جرب المنبه الآن - هيرن لحد ما تدوس تم</button>
   </div>
-  <div class="card">
+  
+<div class="card">
     <b>💾 النسخ الاحتياطي</b>
     <button onclick="exportBackup()" style="background:#111;color:#fff;font-size:14px;padding:12px">💾 نسخ احتياطي - انسخ البيانات</button>
     <button onclick="importBackup()" style="background:#fff;color:#111;border:1px solid #ccc;font-size:14px;padding:12px">📥 استرجاع نسخة احتياطية</button>
   </div>
-  <div class="card"><b>الإعدادات</b><label>تاريخ التعيين</label><input type="date" id="hiring"><label>الدرجة</label><select id="grade"><option>السادسة</option><option>الخامسة</option><option>الرابعة</option><option>الثالثة (ج)</option><option>الثالثة (ب)</option><option>الثالثة (أ)</option><option>الثانية (ب)</option><option>الثانية (أ)</option><option>الأولى (ب)</option><option>الأولى (أ)</option><option>مدير عام</option><option>العالية</option><option>الممتازة</option></select><label>تاريخ الحصول على الدرجة</label><input type="date" id="gradeDate"><label>الراحة الأسبوعية</label><select id="restDay"><option>السبت</option><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option selected>الخميس</option></select><button style="background:#111;color:#fff" onclick="saveSet()">حفظ الإعدادات</button></div>
+  
 </div>
-
-  <div id="alarmModal" class="modal hidden" style="background:rgba(220,38,38,0.95);z-index:200">
+<div id="alarmModal" class="modal hidden" style="background:rgba(220,38,38,0.95);z-index:200">
     <div class="modal-box" style="background:#fff;padding:25px">
       <div style="font-size:60px;animation:shake 0.5s infinite">⏰</div>
       <h2 id="alarmTitle" style="color:#dc2626;margin:10px 0">بصمة الحضور!</h2>
